@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { PermissionsAndroid, Platform } from "react-native";
+import { PermissionsAndroid, Platform, Alert } from "react-native";
 import {
   BleError,
   BleManager,
@@ -9,6 +9,10 @@ import {
 
 import * as ExpoDevice from "expo-device";
 
+import base64 from "react-native-base64"
+const RASPERRY_UUID = "00001848-0000-1000-8000-00805F9B34FB";
+const BUTTON_UUID = "00002A6E-0000-1000-8000-00805F9B34FB";
+
 interface BluetoothLowEnergyApi {
   requestPermissions(): Promise<boolean>;
   scanForPeripherals(): void;
@@ -16,12 +20,14 @@ interface BluetoothLowEnergyApi {
   disconnectFromDevice: () => void;
   connectedDevice: Device | null;
   allDevices: Device[];
+  command: string;
 }
 
 function useBLE(): BluetoothLowEnergyApi {
   const bleManager = useMemo(() => new BleManager(), []);
   const [allDevices, setAllDevices] = useState<Device[]>([]);
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
+  const [command, setCommand] = useState<string>("Hola")
 
   const requestAndroid31Permissions = async () => {
     const bluetoothScanPermission = await PermissionsAndroid.request(
@@ -49,10 +55,42 @@ function useBLE(): BluetoothLowEnergyApi {
       }
     );
 
+    const microphonePermission = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+      {
+        title: "Permiso de microfono",
+        message: "Need microphone in order to record",
+        buttonPositive: "OK",
+      }
+    )
+
+    const readStorage = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        {
+          title: "Permiso de microfono",
+          message: "Need permissions for reading storage",
+          buttonPositive: "OK",
+        }
+  
+    )
+
+    const writeStorge = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        title: "Permiso de microfono",
+        message: "Need permissions for writing in storage",
+        buttonPositive: "OK",
+      }
+    )
+
+
     return (
       bluetoothScanPermission === "granted" &&
       bluetoothConnectPermission === "granted" &&
-      fineLocationPermission === "granted"
+      fineLocationPermission === "granted" &&
+      microphonePermission === "granted" && 
+      readStorage === "granted" && 
+      writeStorge === "granted"
     );
   };
 
@@ -87,7 +125,7 @@ function useBLE(): BluetoothLowEnergyApi {
       if (error) {
         console.log(error);
       }
-      if (device && device.name?.includes("CorSense")) {
+      if (device && device.name?.includes("Aaron's_Rasperry")) {
         setAllDevices((prevState: Device[]) => {
           if (!isDuplicteDevice(prevState, device)) {
             return [...prevState, device];
@@ -103,6 +141,7 @@ function useBLE(): BluetoothLowEnergyApi {
       setConnectedDevice(deviceConnection);
       await deviceConnection.discoverAllServicesAndCharacteristics();
       bleManager.stopDeviceScan();
+      startStreamingData(deviceConnection)
     } catch (e) {
       console.log("FAILED TO CONNECT", e);
     }
@@ -112,9 +151,38 @@ function useBLE(): BluetoothLowEnergyApi {
     if (connectedDevice) {
       bleManager.cancelDeviceConnection(connectedDevice.id);
       setConnectedDevice(null)
+      setCommand("")
     }
   };
 
+  const commandUpdate = (
+    error: BleError | null,
+    characteristic: Characteristic | null
+  ) => {
+    if (error){
+      return "Error"
+    } else if (!characteristic?.value) {
+      console.log("Sin datos")
+      return "No se ha recibido la caracteristica"
+    } 
+
+    const rawData = base64.decode(characteristic.value)
+    setCommand(rawData)
+
+  }
+
+  const startStreamingData = async (device: Device) => {
+    if (device) {
+      device.monitorCharacteristicForService(
+        RASPERRY_UUID,
+        BUTTON_UUID,
+        commandUpdate 
+      );
+      
+    } else {
+      console.log("No Device Connected");
+    }
+  };
 
   return {
     scanForPeripherals,
@@ -122,8 +190,10 @@ function useBLE(): BluetoothLowEnergyApi {
     connectToDevice,
     allDevices,
     connectedDevice,
-    disconnectFromDevice
+    disconnectFromDevice,
+    command
   };
 }
+
 
 export default useBLE;

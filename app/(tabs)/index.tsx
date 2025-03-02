@@ -7,9 +7,52 @@ import { ThemedView } from '@/components/ThemedView';
 import { ABIndicator } from './AppBluetoothIndicator';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useState, useEffect } from 'react';
+import DeviceModal from '@/DeviceConnectionModel'
+import useBLE from '@/useBLE';
+
+
 export default function HomeScreen() {
+
+  const {
+    requestPermissions,
+    scanForPeripherals,
+    allDevices,
+    connectToDevice,
+    connectedDevice,
+    command,
+    disconnectFromDevice,
+  } = useBLE()
+
+  const [isModalVisible,setIsModalVisible] = useState<boolean>(false)
+
+  const scanForDevices = async () => {
+    const isPermissionsEnabled = await requestPermissions();
+    if (isPermissionsEnabled) {
+      scanForPeripherals();
+    }
+  };
+
+  const hideModal = () => {
+    setIsModalVisible(false);
+  };
+
+  const openModal = async () => {
+
+    scanForDevices();
+    setIsModalVisible(true);
+  };
+
   const [prueba, setPrueba] = useState<string>("HOLA")
-  const onPressTest = () => setPrueba("Probando")
+  const [connected, setConnected] = useState<boolean>(false)
+  const onPressTest = () => {
+    if(connectedDevice){
+      setConnected(true)
+      disconnectFromDevice()
+    } else {
+      openModal()
+      setConnected(false)
+    }
+  }
   return (
     <SafeAreaProvider>
     <SafeAreaView style={styles.container}>
@@ -21,15 +64,20 @@ export default function HomeScreen() {
         <ABIndicator></ABIndicator>
         <FontAwesome name="microphone" size={24} color="black" />
 
-        <Text>
-          {prueba}
+        <Text> El comando es: 
+          {command}
         </Text>
       </View>
 
-      <TouchableOpacity onPress={onPressTest}>
-        <Text>Tocame corazon.</Text>
+      <TouchableOpacity onPress={onPressTest} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center"}}>
+        <Text style={{color:"white"}}>{connectedDevice? "Dispositivo Conectado" : "Desconectado"}</Text>
       </TouchableOpacity>
-
+      <DeviceModal
+        closeModal={hideModal}
+        visible={isModalVisible}
+        connectToPeripheral={connectToDevice}
+        devices={allDevices}
+      />  
     </SafeAreaView>
     </SafeAreaProvider>
   );
