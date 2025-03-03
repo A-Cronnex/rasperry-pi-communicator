@@ -55,42 +55,14 @@ function useBLE(): BluetoothLowEnergyApi {
       }
     );
 
-    const microphonePermission = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-      {
-        title: "Permiso de microfono",
-        message: "Need microphone in order to record",
-        buttonPositive: "OK",
-      }
-    )
-
-    const readStorage = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        {
-          title: "Permiso de microfono",
-          message: "Need permissions for reading storage",
-          buttonPositive: "OK",
-        }
-  
-    )
-
-    const writeStorge = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        title: "Permiso de microfono",
-        message: "Need permissions for writing in storage",
-        buttonPositive: "OK",
-      }
-    )
+ 
 
 
-    return (
+    return (  
       bluetoothScanPermission === "granted" &&
       bluetoothConnectPermission === "granted" &&
-      fineLocationPermission === "granted" &&
-      microphonePermission === "granted" && 
-      readStorage === "granted" && 
-      writeStorge === "granted"
+      fineLocationPermission === "granted"
+
     );
   };
 
@@ -125,7 +97,7 @@ function useBLE(): BluetoothLowEnergyApi {
       if (error) {
         console.log(error);
       }
-      if (device && device.name?.includes("Aaron's_Rasperry")) {
+      if (device) { // Removed the name filter
         setAllDevices((prevState: Device[]) => {
           if (!isDuplicteDevice(prevState, device)) {
             return [...prevState, device];
