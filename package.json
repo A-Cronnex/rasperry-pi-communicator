@@ -26,6 +26,7 @@
     "base-64": "^1.0.0",
     "buffer": "^6.0.3",
     "expo": "~52.0.37",
+    "expo-audio": "~0.3.5",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.7",
     "expo-dev-client": "~5.0.12",
@@ -63,6 +64,7 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "start": "^5.1.0",
+    "use-debounce": "^10.0.4",
     "utf8": "^3.0.0"
   },
   "devDependencies": {

@@ -6,7 +6,9 @@ import { useState, useEffect, useRef } from 'react';
 import DeviceModal from '@/DeviceConnectionModel'
 import useBLE from '@/useBLE';
 import useAudioRecorder from '@/useAudioRecorder'
+import {useAudioPlayer} from 'expo-audio'
 
+const audioSource = require("@/assets/bay_play.mp3")
 
 export default function HomeScreen() {
 
@@ -42,15 +44,34 @@ export default function HomeScreen() {
 
   const [currentCommand, setCurrentCommand] = useState<string>("")
 
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+
+  const player = useAudioPlayer(audioSource)
+
   useEffect(() => {
     if (command != "d" && connectedDevice){
       setCurrentCommand(command)
     }
     if (connectedDevice){
+
+      if (currentCommand == "a"){
+        player.play()
+      }
+
       if (currentCommand === "c"){
         onStartRecord()
-      } else if (currentCommand === "b"){
-        onStopRecord()
+      } 
+    }
+      return () => {
+        if (connectedDevice){
+        if (currentCommand != "a"){
+          player.pause()
+          player.remove()
+          if (currentCommand === "b"){
+            onStopRecord()
+          }
+        }
+
       }
     }
   }, [command, connectedDevice,currentCommand])
