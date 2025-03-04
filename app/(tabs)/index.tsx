@@ -2,13 +2,15 @@ import { Image, StyleSheet, Platform, SafeAreaView, View,StatusBar, Text, Toucha
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ABIndicator } from './AppBluetoothIndicator';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DeviceModal from '@/DeviceConnectionModel'
 import useBLE from '@/useBLE';
+import useAudioRecorder from '@/useAudioRecorder'
 
 
 export default function HomeScreen() {
 
+  //APIs
   const {
     requestPermissions,
     scanForPeripherals,
@@ -18,6 +20,21 @@ export default function HomeScreen() {
     command,
     disconnectFromDevice,
   } = useBLE();
+
+  const {
+    onStartRecord,
+    onStopRecord,
+    onStartPlay,
+    onPausePlay,
+    onStopPlay,
+    isLogginIn,
+    recordSecs,
+    currentPositionSec,
+    currentDurationSec,
+    playTime,
+    recordTime,
+    duration
+  } = useAudioRecorder();
 
   const [connected, setConnected] = useState<boolean>(false)
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
@@ -29,7 +46,14 @@ export default function HomeScreen() {
     if (command != "d" && connectedDevice){
       setCurrentCommand(command)
     }
-  }, [command, connectedDevice])
+    if (connectedDevice){
+      if (currentCommand === "c"){
+        onStartRecord()
+      } else if (currentCommand === "b"){
+        onStopRecord()
+      }
+    }
+  }, [command, connectedDevice,currentCommand])
 
   const scanForDevices = async () => {
     setIsScanning(true)
@@ -89,7 +113,6 @@ export default function HomeScreen() {
         <FontAwesome name="microphone" size={24} color="black" />
 
         <Text> El comando es:
-        
           {currentCommand}
         </Text>
       </View>
@@ -99,7 +122,16 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       {isScanning && <Text>Scanning...</Text>}
-      {afterScan()}   
+      {afterScan()}
+      <Text>{recordTime}</Text>
+
+      <TouchableOpacity onPress={onStartRecord} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center"}}>
+        <Text>Grabar</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={onStopRecord} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center"}}>
+        <Text>Parar</Text>
+      </TouchableOpacity>
 
     </SafeAreaView>
     </SafeAreaProvider>
