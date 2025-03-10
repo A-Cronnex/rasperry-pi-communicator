@@ -11,7 +11,7 @@ export const ABIndicator = () => {
     const radius = width/2
 
     return (
-        <Canvas style={{height:width,width:height,position:"relative",backgroundColor:"red", display:"flex",justifyContent:"center",alignItems:"center"}}>
+        <Canvas style={{height:width,width:height,position:"relative", display:"flex",justifyContent:"center",alignItems:"center"}}>
             <Circle c={circleCenter} r={radius} color={"blue"}>
             </Circle>
         </Canvas>

@@ -7,10 +7,23 @@ import DeviceModal from '@/DeviceConnectionModel'
 import useBLE from '@/useBLE';
 import useAudioRecorder from '@/useAudioRecorder'
 import {useAudioPlayer} from 'expo-audio'
+import {useDebounce} from 'use-debounce'
+
+import {PaperProvider, Card, MD3Colors, Icon, ActivityIndicator, Button} from 'react-native-paper'
 
 const audioSource = require("@/assets/bay_play.mp3")
 
 export default function HomeScreen() {
+
+  const [connected, setConnected] = useState<boolean>(false)
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [isScanning, setIsScanning] = useState<boolean>(false)
+
+  const [currentCommand, setCurrentCommand] = useState<string>("")
+
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+
+  const [bouncedCommand] = useDebounce(currentCommand, 500)
 
   //APIs
   const {
@@ -38,14 +51,6 @@ export default function HomeScreen() {
     duration
   } = useAudioRecorder();
 
-  const [connected, setConnected] = useState<boolean>(false)
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [isScanning, setIsScanning] = useState<boolean>(false)
-
-  const [currentCommand, setCurrentCommand] = useState<string>("")
-
-  const [isPlaying, setIsPlaying] = useState<boolean>(false)
-
   const player = useAudioPlayer(audioSource)
 
   useEffect(() => {
@@ -54,27 +59,27 @@ export default function HomeScreen() {
     }
     if (connectedDevice){
 
-      if (currentCommand == "a"){
+      if (bouncedCommand == "a"){
         player.play()
       }
 
-      if (currentCommand === "c"){
+      if (bouncedCommand === "c"){
         onStartRecord()
       } 
     }
       return () => {
         if (connectedDevice){
-        if (currentCommand != "a"){
+        if (bouncedCommand != "a"){
           player.pause()
           player.remove()
-          if (currentCommand === "b"){
+          if (bouncedCommand === "b"){
             onStopRecord()
           }
         }
 
       }
     }
-  }, [command, connectedDevice,currentCommand])
+  }, [bouncedCommand, connectedDevice, currentCommand,command])
 
   const scanForDevices = async () => {
     setIsScanning(true)
@@ -123,39 +128,37 @@ export default function HomeScreen() {
 
   
   return (
-    <SafeAreaProvider>
-    <SafeAreaView style={styles.container}>
-      <View>
-        <Text>Hola mundo! Estoy en react native</Text>
-      </View>
+    <PaperProvider>
 
+    <SafeAreaProvider>
+      <SafeAreaView>
       <View style={styles.centerView}>
         <ABIndicator></ABIndicator>
-        <FontAwesome name="microphone" size={24} color="black" />
-
-        <Text> El comando es:
-          {currentCommand}
-        </Text>
+        <FontAwesome name="microphone" size={200} color="lightblue" style={{position:"absolute"}}/>
       </View>
 
-      <TouchableOpacity onPress={onPressTest} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center"}}>
+
+      <View style={styles.contentWrapper}>
+     { /*<TouchableOpacity onPress={onPressTest} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center", height:40}}>
         <Text style={{color:"white"}}>{connectedDevice? "Dispositivo Conectado" : "Desconectado"}</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {isScanning && <Text>Scanning...</Text>}
       {afterScan()}
       <Text>{recordTime}</Text>
 
-      <TouchableOpacity onPress={onStartRecord} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center"}}>
+      {/*<TouchableOpacity onPress={onStartRecord} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center"}}>
         <Text>Grabar</Text>
-      </TouchableOpacity>
+      </TouchableOpacity>*/}
 
-      <TouchableOpacity onPress={onStopRecord} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center"}}>
+      {/*<TouchableOpacity onPress={onStopRecord} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center"}}>
         <Text>Parar</Text>
-      </TouchableOpacity>
-
-    </SafeAreaView>
+      </TouchableOpacity>*/}
+      </View>
+    
+      </SafeAreaView>
     </SafeAreaProvider>
+    </PaperProvider>
   );
 }
 
@@ -182,8 +185,17 @@ const styles = StyleSheet.create({
     display:"flex",
     position:"relative",
     flexDirection:"column",
-    backgroundColor:"purple",
     alignItems: "center",
-    justifyContent:"center"
+    justifyContent:"center",
+    padding:30
+  },
+
+  contentWrapper:{
+    flex:1,
+    flexDirection:"column",
+    padding:10,
+    gap:10,
+    alignContent:"center",
+    alignSelf:"center"
   }
 });
