@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Platform, SafeAreaView, View,StatusBar, Text, TouchableOpacity} from 'react-native';
+import { Image, StyleSheet, Platform, SafeAreaView, View,StatusBar, Text, TouchableOpacity, Dimensions} from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ABIndicator } from './AppBluetoothIndicator';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -12,6 +12,9 @@ import {useDebounce} from 'use-debounce'
 import {PaperProvider, Card, MD3Colors, Icon, ActivityIndicator, Button} from 'react-native-paper'
 
 const audioSource = require("@/assets/bay_play.mp3")
+
+const windowWidth = Dimensions.get('window').width
+const windowHeight = Dimensions.get('window').height
 
 export default function HomeScreen() {
 
@@ -131,18 +134,25 @@ export default function HomeScreen() {
     <PaperProvider>
 
     <SafeAreaProvider>
-      <SafeAreaView>
+      <SafeAreaView style={{backgroundColor:"#3F51B5", height:windowHeight}}>
       <View style={styles.centerView}>
         <ABIndicator></ABIndicator>
-        <FontAwesome name="microphone" size={200} color="lightblue" style={{position:"absolute"}}/>
+        <FontAwesome name="microphone" size={100} color="black" style={{position:"absolute", fontWeight:"bold"}}/>
       </View>
 
-
+      
       <View style={styles.contentWrapper}>
-     { /*<TouchableOpacity onPress={onPressTest} style={{backgroundColor: connectedDevice ? "green" : "red", padding:10, alignContent:"center", height:40}}>
-        <Text style={{color:"white"}}>{connectedDevice? "Dispositivo Conectado" : "Desconectado"}</Text>
-      </TouchableOpacity> */}
+      <Button mode="contained-tonal" style ={{borderRadius:1, position:"relative", padding:10, marginBottom:15}} uppercase={true}>
 
+        <Text style={{fontSize:20, position:"absolute"}}>{connectedDevice? "Conectado":"Desconectado" }</Text>
+      </Button>
+
+     <TouchableOpacity onPress={onPressTest} style={{backgroundColor: "#3F51B5", padding:10, alignContent:"center"}}>
+        <Text style={{color:"white", fontSize:15}}>{connectedDevice? "Dispositivo Conectado" : "Desconectado, presione para conectar..."}</Text>
+      </TouchableOpacity>
+
+      {isScanning ? <ActivityIndicator animating={true} color="blue"/> : null}
+      
       {isScanning && <Text>Scanning...</Text>}
       {afterScan()}
       <Text>{recordTime}</Text>
@@ -191,11 +201,12 @@ const styles = StyleSheet.create({
   },
 
   contentWrapper:{
-    flex:1,
-    flexDirection:"column",
-    padding:10,
-    gap:10,
+    margin:10,
+    padding:1,
     alignContent:"center",
-    alignSelf:"center"
+    alignSelf:"center",
+    alignItems:"center",
+    height:200,
+    width:300
   }
 });

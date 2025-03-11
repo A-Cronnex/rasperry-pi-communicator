@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import {Canvas, useCanvasRef, Circle, vec} from "@shopify/react-native-skia"
 
 
-const width = 300
-const height = 300
+const width = 250
+const height = 250
 
 export const ABIndicator = () => {
 
@@ -12,7 +12,7 @@ export const ABIndicator = () => {
 
     return (
         <Canvas style={{height:width,width:height,position:"relative", display:"flex",justifyContent:"center",alignItems:"center"}}>
-            <Circle c={circleCenter} r={radius} color={"blue"}>
+            <Circle c={circleCenter} r={radius} color={"white"}>
             </Circle>
         </Canvas>
     )
