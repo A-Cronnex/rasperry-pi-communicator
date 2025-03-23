@@ -1,19 +1,17 @@
 import { Image, StyleSheet, Platform, SafeAreaView, View,StatusBar, Text, TouchableOpacity, Dimensions} from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ABIndicator } from './AppBluetoothIndicator';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useState, useEffect, useRef } from 'react';
 import DeviceModal from '@/DeviceConnectionModel'
 import useBLE from '@/useBLE';
 import useAudioRecorder from '@/useAudioRecorder'
-import {useAudioPlayer} from 'expo-audio'
 import {useDebounce} from 'use-debounce'
+
 
 import {PaperProvider, Card, MD3Colors, Icon, ActivityIndicator, Button} from 'react-native-paper'
 
 const audioSource = require("@/assets/bay_play.mp3")
 
-const windowWidth = Dimensions.get('window').width
 const windowHeight = Dimensions.get('window').height
 
 export default function HomeScreen() {
@@ -27,6 +25,8 @@ export default function HomeScreen() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
 
   const [bouncedCommand] = useDebounce(currentCommand, 500)
+
+  const isConnectedRef = useRef(false)
 
   //APIs
   const {
@@ -54,7 +54,6 @@ export default function HomeScreen() {
     duration
   } = useAudioRecorder();
 
-  const player = useAudioPlayer(audioSource)
 
   useEffect(() => {
     if (command != "d" && connectedDevice){
@@ -62,24 +61,16 @@ export default function HomeScreen() {
     }
     if (connectedDevice){
 
-      if (bouncedCommand == "a"){
-        player.play()
-      }
-
       if (bouncedCommand === "c"){
         onStartRecord()
       } 
     }
       return () => {
         if (connectedDevice){
-        if (bouncedCommand != "a"){
-          player.pause()
-          player.remove()
           if (bouncedCommand === "b"){
             onStopRecord()
           }
-        }
-
+        
       }
     }
   }, [bouncedCommand, connectedDevice, currentCommand,command])
@@ -105,6 +96,8 @@ export default function HomeScreen() {
   const onPressTest = () => {
     if(connectedDevice){
       setConnected(true)
+      isConnectedRef.current = connected
+      
       disconnectFromDevice()
     } else {
       openModal()
@@ -136,7 +129,7 @@ export default function HomeScreen() {
     <SafeAreaProvider>
       <SafeAreaView style={{backgroundColor:"#3F51B5", height:windowHeight}}>
       <View style={styles.centerView}>
-        <ABIndicator></ABIndicator>
+        
         <FontAwesome name="microphone" size={100} color="black" style={{position:"absolute", fontWeight:"bold"}}/>
       </View>
 
@@ -152,6 +145,9 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       {isScanning ? <ActivityIndicator animating={true} color="blue"/> : null}
+
+      
+
       
       {isScanning && <Text>Scanning...</Text>}
       {afterScan()}

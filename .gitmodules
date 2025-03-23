@@ -1,0 +1,3 @@
+[submodule "rasperry-pico-code"]
+	path = rasperry-pico-code
+	url = https://github.com/A-Cronnex/rasperry-pico-code.git

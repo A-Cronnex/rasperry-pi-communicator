@@ -69,7 +69,7 @@ function useAudioRecorder() : audioRecordAPI {
         const dirs = ReactNativeBlobUtil.fs.dirs;
         const path = Platform.select({
           ios: 'hello.m4a',
-          android: `${dirs.DownloadDir}/hello.mp3`,
+          android: `${dirs.MusicDir}/hello.mp3`//'/storage/emulated/0/Music/hello.mp3'//`${dirs.MusicDir}/hello.mp3`,
         });
 
         try {
